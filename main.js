@@ -28,6 +28,11 @@ var ASSETS = {
     'toma_sprite': 'toma.tmss',
     'nasu_sprite': 'nasu.tmss',
   },
+  sound: {
+  //'bgm': 'sound/bgm.mp3',
+  //'alert': 'sound/alert.mp3',
+  //'hit': 'sound/hit.mp3',
+  }
 };
 
 phina.define('Main', {
@@ -55,6 +60,7 @@ phina.define('Main', {
     }
   }
 
+//    SoundManager.playMusic('bgm');
 /*
     var rect1=RectangleShape({width:SCREEN_WIDTH,height:64,fill:'gray'}).setPosition(SCREEN_WIDTH/2,32).addChildTo(bg);
     var rect2=RectangleShape({width:SCREEN_WIDTH,height:64,fill:'gray'}).setPosition(SCREEN_WIDTH/2,SCREEN_HEIGHT-32).addChildTo(bg);
@@ -138,9 +144,6 @@ phina.define('Main', {
       var enemy = Sprite('nasu', 96, 96).addChildTo(enemygroup).setSize(96,96);
       enemy.collider.setSize(32, 48).offset(0,8);
 
-
-
-
       // スプライトにフレームアニメーションをアタッチ
       var anim2 = FrameAnimation('nasu_sprite').attachTo(enemy);
       anim2.fit = false;
@@ -193,7 +196,7 @@ phina.define('Main', {
       }
       var alert=Sprite('icon', 96, 96).setPosition(pos.x,pos.y).setRotation(pos.r).setScale(0.5).addChildTo(this)
       alert.time=10;
-
+      //    SoundManager.play('alert');
       alert.update=function(){
         alert.time--;
         alert.alpha=(alert.time*0.1);
@@ -259,10 +262,12 @@ phina.define("GameOver", {
       var label3 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/3,fontSize:48,fill:'yellow',stroke:'black',text:'NEW RECORD'}).addChildTo(this);
       localStorage.setItem('hi',score);
     }
-    var self = this;
 
+    //SoundManager.play();
     //var label4 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+128,fontSize:48,fill:'white',stroke:'black',text:''}).addChildTo(this);
 
+
+    //    SoundManager.playMusic('hit');
 
     // ポーズ解除ボタン
     Button({
