@@ -30,6 +30,12 @@
 "frames": [15,16,17,16],
 "next": "right",
 "frequency": 6
+},
+
+"hit": {
+"frames": [4],
+"next": "hit",
+"frequency": 6
 }
 
 }

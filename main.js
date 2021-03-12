@@ -3,18 +3,25 @@ phina.globalize();
 
 var SCREEN_WIDTH = 640;
 var SCREEN_HEIGHT = 960;
-var time=10;
+var start=20;
+var interval;
 var animation=['up','down','left','right'];
+var anim;
+var temp;
+var self;
+var score=0;
+var label;
 
 // グローバル変数
-var grobalGroup = null;
-var boxes=[];
+var playergroup = null;
+var enemyrgroup = null;
 
 var ASSETS = {
   // 画像
   image: {
     'toma': 'tomapiyo.png',
     'nasu': 'nasupiyo.png',
+    'icon':'icon.png',
   },
   // スプライトシート
   spritesheet: {
@@ -27,151 +34,192 @@ phina.define('Main', {
   superClass: 'DisplayScene',
   init: function() {
     this.superInit();
-    var self=this;
-    grobalGroup = DisplayElement().addChildTo(this);
-    grobalGroup2 = DisplayElement().addChildTo(this);
-    // 背景
-    this.backgroundColor = 'lightgreen';
-
+    self=this;
     var bg =  DisplayElement().addChildTo(this);
-    var group =  DisplayElement().addChildTo(this);
 
-    for(var i=0; i<5; i++){
-      //var shape = Shape().setSize(100,10).setPosition(100+100*i,100+100*i).setRotate(45).addChildTo(bg);
+    enemygroup = DisplayElement().addChildTo(this);
+    playergroup = DisplayElement().addChildTo(this);
+    // 背景
+    this.backgroundColor = 'gray';
+
+    var p1=[1,1,1,1,0,0,0,1,1,1,1];
+    var p2=[1,1,1,0,0,0,1,1,1];
+    for(var i=0; i<p1.length; i++){
+      if(p1[i]==1){
+      var rect=RectangleShape({width:SCREEN_WIDTH/3,height:32,fill:'white'}).setPosition(SCREEN_WIDTH/2,SCREEN_HEIGHT*i/p1.length+40).addChildTo(bg);
     }
-    //var shape = Shape().setSize(640,50).setPosition(320,960-25).addChildTo(bg);
+  }
+      for(var i=0; i<p2.length; i++){
+          if(p2[i]==1){
+      var rect=RectangleShape({width:32,height:SCREEN_HEIGHT/4,fill:'white'}).setPosition(SCREEN_WIDTH*i/p2.length+36,SCREEN_HEIGHT/2).addChildTo(bg);
+    }
+  }
 
-    //var ground = Sprite('ground', 640, 240).setPosition(320,840).addChildTo(bg);
+/*
+    var rect1=RectangleShape({width:SCREEN_WIDTH,height:64,fill:'gray'}).setPosition(SCREEN_WIDTH/2,32).addChildTo(bg);
+    var rect2=RectangleShape({width:SCREEN_WIDTH,height:64,fill:'gray'}).setPosition(SCREEN_WIDTH/2,SCREEN_HEIGHT-32).addChildTo(bg);
+    var rect3=RectangleShape({width:64,height:SCREEN_HEIGHT,fill:'gray'}).setPosition(32,SCREEN_HEIGHT/2).addChildTo(bg);
+    var rect4=RectangleShape({width:64,height:SCREEN_HEIGHT,fill:'gray'}).setPosition(SCREEN_WIDTH-32,SCREEN_HEIGHT/2).addChildTo(bg);
+*/
+    label = Label({
+      text:'',
+      fontSize: 48,
+      x:SCREEN_WIDTH/2,
+      y:32,
+      fill:'blue',
+      //stroke:'blue',
+      strokeWidth:5,
+    }).addChildTo(this);
 
     // スプライト画像作成
-    var sprite = Sprite('toma', 64, 64).addChildTo(group);
+    player = Sprite('toma', 64, 64).addChildTo(playergroup)
+    .setSize(96,96);
+    player.collider.setSize(48, 48).offset(0,8);
+
     // スプライトにフレームアニメーションをアタッチ
-    var anim = FrameAnimation('toma_sprite').attachTo(sprite);
+    anim = FrameAnimation('toma_sprite').attachTo(player);
     anim.fit = false;
-    sprite.setSize(100,100);
     // アニメーションを指定
     anim.gotoAndPlay('down');
 
     // 初期位置
-    sprite.x = SCREEN_WIDTH/2;
-    sprite.y = SCREEN_HEIGHT/2;
+    player.x = SCREEN_WIDTH/2;
+    player.y = SCREEN_HEIGHT/2;
     //anim.ss.getAnimation('down').frequency = 3;
 
-    var rect = RectangleShape({
-      width: 50,
-      height: 70,
-      fill: null,
-      stroke: 'red',
-    }).addChildTo(sprite);
 
-
-    sprite.update= function(app){
+    player.update= function(app){
       var k = app.keyboard;
-      /*this.y += 5;
-      // 地面に着いたら反発する
-      if (this.top > 960) {
-        this.bottom = 0;
-      }*/
+
       if(k.getKey('up')){
         this.y -=5;
         if(anim.currentAnimation.next!='up'){
-            anim.gotoAndPlay('up');
-          }
+          anim.gotoAndPlay('up');
+        }
 
       }
       if(k.getKey('down')){
         this.y +=5;
         if(anim.currentAnimation.next!='down'){
-            anim.gotoAndPlay('down');
-          }
+          anim.gotoAndPlay('down');
+        }
 
       }
       if(k.getKey('left')){
         this.x -=5;
         if(anim.currentAnimation.next!='left'){
-            anim.gotoAndPlay('left');
-          }
+          anim.gotoAndPlay('left');
+        }
       }
 
       if(k.getKey('right')){
         this.x +=5;
         if(anim.currentAnimation.next!='right'){
-            anim.gotoAndPlay('right');
-          }
+          anim.gotoAndPlay('right');
+        }
       }
-      if(rect.hitTestElement==boxes){
-        console.log("hit");
-      }
-}
+
+    }
+
+
 
 
   },
 
   update:function(){
-    time--;
-    if(time==0){
-      time=20;
+    score++;
+    interval=Math.max(10,start-Math.floor(score/100));
+    //console.log(interval);
+    label.text=score;
+    if(score%interval==0){
+
       // スプライト画像作成
 
-      var sprite2 = Sprite('nasu', 96, 96).addChildTo(grobalGroup);
-      // スプライトにフレームアニメーションをアタッチ
-      var anim = FrameAnimation('nasu_sprite').attachTo(sprite2);
-      anim.fit = false;
-      sprite2.setSize(96,96);
+      var enemy = Sprite('nasu', 96, 96).addChildTo(enemygroup).setSize(96,96);
+      enemy.collider.setSize(32, 48).offset(0,8);
 
-      var box = RectangleShape({
-        width: 50,
-        height: 70,
-        fill: null,
-        stroke: 'black',
-      }).addChildTo(sprite2);
-      boxes.push(box);
+
+
+
+      // スプライトにフレームアニメーションをアタッチ
+      var anim2 = FrameAnimation('nasu_sprite').attachTo(enemy);
+      anim2.fit = false;
 
       var rand = Math.floor(Math.random()*(4));
-      anim.gotoAndPlay(animation[rand]);
+      anim2.gotoAndPlay(animation[rand]);
 
+      var pos={x:0,y:0,r:0};
       switch(rand){
         case 0://up
-        sprite2.x = 48+Math.floor(Math.random()*(SCREEN_WIDTH-96));
-        sprite2.top = SCREEN_HEIGHT;
-        sprite2.vx=0;
-        sprite2.vy=-5;
+        enemy.x = 48+Math.floor(Math.random()*(SCREEN_WIDTH-96));
+        pos.x=enemy.x;
+        pos.y=SCREEN_HEIGHT-50;
+        pos.r=0;
+        enemy.top = SCREEN_HEIGHT+32;
+        enemy.vx=0;
+        enemy.vy=-5;
         break;
 
         case 1://down
-        sprite2.x = 48+Math.floor(Math.random()*(SCREEN_WIDTH-96));
-        sprite2.bottom = 0;
-        sprite2.vx=0;
-        sprite2.vy=5;
+        enemy.x = 48+Math.floor(Math.random()*(SCREEN_WIDTH-96));
+        pos.x=enemy.x;
+        pos.y=50;
+        pos.r=180;
+        enemy.bottom = 0-32;
+        enemy.vx=0;
+        enemy.vy=5;
         break;
 
         case 2://left
-        sprite2.y = 48+Math.floor(Math.random()*(SCREEN_HEIGHT-96));
-        sprite2.right = 0;
-        sprite2.vx=5;
-        sprite2.vy=0;
+        enemy.y = 48+Math.floor(Math.random()*(SCREEN_HEIGHT-96));
+        pos.x=50;
+        pos.y=enemy.y;
+        pos.r=-270;
+        enemy.right = 0-32;
+        enemy.vx=5;
+        enemy.vy=0;
         break;
 
         case 3://right
-        sprite2.y = 48+Math.floor(Math.random()*(SCREEN_HEIGHT-96));
-        sprite2.left = SCREEN_WIDTH;
-        sprite2.vx=-5;
-        sprite2.vy=0;
+        enemy.y = 48+Math.floor(Math.random()*(SCREEN_HEIGHT-96));
+        pos.x=SCREEN_WIDTH-50;
+        pos.y=enemy.y;
+        pos.r=-90;
+        enemy.left = SCREEN_WIDTH+32;
+        enemy.vx=-5;
+        enemy.vy=0;
         break;
 
       }
+      var alert=Sprite('icon', 96, 96).setPosition(pos.x,pos.y).setRotation(pos.r).setScale(0.5).addChildTo(this)
+      alert.time=10;
 
-      sprite2.update= function(){
+      alert.update=function(){
+        alert.time--;
+        alert.alpha=(alert.time*0.1);
+        if (alert.time==0) {
+          alert.remove();
+        }
+      }
+
+      enemy.update= function(){
         this.x += this.vx;
         this.y += this.vy;
 
 
+        if (enemy.collider.hitTest(player.collider)) {
+          //console.log("hit");
+          anim.gotoAndPlay('hit');
+          anim2.gotoAndPlay('hit');
+          label.remove();
+          self.app.pushScene(GameOver());
+        }
 
-        if (this.top > 960 || this.bottom < 0) {
+        if (this.top > SCREEN_HEIGHT+64 || this.bottom < 0-64) {
           this.remove();
         }
 
-        if (this.left > 960 || this.right < 0) {
+        if (this.left > SCREEN_HEIGHT+64 || this.right < 0-64) {
           this.remove();
         }
       }
@@ -185,6 +233,47 @@ phina.define('Main', {
 
 
 
+});
+
+/*
+* ポーズシーン
+*/
+phina.define("GameOver", {
+  // 継承
+  superClass: 'DisplayScene',
+  // コンストラクタ
+  init: function() {
+    // 親クラス初期化
+    this.superInit();
+    // 背景を半透明化
+    this.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+
+    score-=1;
+    var hi=0
+    if(!localStorage.getItem('hi')){hi=0}
+    else{hi = parseInt(localStorage.getItem('hi'),10);}
+    var label1 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2-32,fontSize:48,fill:'white',stroke:'black',text:'スコア : '+score}).addChildTo(this);
+    var label2 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+32,fontSize:48,fill:'white',stroke:'black',text:'ハイスコア : '+hi}).addChildTo(this);
+
+    if(hi<score){
+      var label3 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/3,fontSize:48,fill:'yellow',stroke:'black',text:'NEW RECORD'}).addChildTo(this);
+      localStorage.setItem('hi',score);
+    }
+    var self = this;
+
+    //var label4 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+128,fontSize:48,fill:'white',stroke:'black',text:''}).addChildTo(this);
+
+
+    // ポーズ解除ボタン
+    Button({
+      text: 'Retry',
+    }).addChildTo(this)
+    .setPosition(this.gridX.center(), SCREEN_HEIGHT*2/3)
+    .onpush = function() {
+      location.reload();
+    };
+
+  },
 });
 
 // メイン処理
