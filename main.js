@@ -3,14 +3,17 @@ phina.globalize();
 
 var SCREEN_WIDTH = 640;
 var SCREEN_HEIGHT = 960;
-var start=20;
-var interval;
+var start=50;
+var interval=start;
 var animation=['up','down','left','right'];
 var anim;
 var temp;
 var self;
 var score=0;
 var label;
+var speed=2.5;
+var now=0;
+var count=0;
 
 // グローバル変数
 var playergroup = null;
@@ -29,9 +32,10 @@ var ASSETS = {
     'nasu_sprite': 'nasu.tmss',
   },
   sound: {
-  //'bgm': 'sound/bgm.mp3',
-  //'alert': 'sound/alert.mp3',
-  //'hit': 'sound/hit.mp3',
+    'bgm': 'sound/mist.mp3',
+    'go': 'sound/ikuzo.mp3',
+    'alert':'sound/alert.mp3',
+    'hit': 'sound/damage.mp3',
   }
 };
 
@@ -51,22 +55,23 @@ phina.define('Main', {
     var p2=[1,1,1,0,0,0,1,1,1];
     for(var i=0; i<p1.length; i++){
       if(p1[i]==1){
-      var rect=RectangleShape({width:SCREEN_WIDTH/3,height:32,fill:'white'}).setPosition(SCREEN_WIDTH/2,SCREEN_HEIGHT*i/p1.length+40).addChildTo(bg);
+        var rect=RectangleShape({width:SCREEN_WIDTH/3,height:32,fill:'white'}).setPosition(SCREEN_WIDTH/2,SCREEN_HEIGHT*i/p1.length+40).addChildTo(bg);
+      }
     }
-  }
-      for(var i=0; i<p2.length; i++){
-          if(p2[i]==1){
-      var rect=RectangleShape({width:32,height:SCREEN_HEIGHT/4,fill:'white'}).setPosition(SCREEN_WIDTH*i/p2.length+36,SCREEN_HEIGHT/2).addChildTo(bg);
+    for(var i=0; i<p2.length; i++){
+      if(p2[i]==1){
+        var rect=RectangleShape({width:32,height:SCREEN_HEIGHT/4,fill:'white'}).setPosition(SCREEN_WIDTH*i/p2.length+36,SCREEN_HEIGHT/2).addChildTo(bg);
+      }
     }
-  }
 
-//    SoundManager.playMusic('bgm');
-/*
+    SoundManager.playMusic('bgm');
+    SoundManager.play('go');
+    /*
     var rect1=RectangleShape({width:SCREEN_WIDTH,height:64,fill:'gray'}).setPosition(SCREEN_WIDTH/2,32).addChildTo(bg);
     var rect2=RectangleShape({width:SCREEN_WIDTH,height:64,fill:'gray'}).setPosition(SCREEN_WIDTH/2,SCREEN_HEIGHT-32).addChildTo(bg);
     var rect3=RectangleShape({width:64,height:SCREEN_HEIGHT,fill:'gray'}).setPosition(32,SCREEN_HEIGHT/2).addChildTo(bg);
     var rect4=RectangleShape({width:64,height:SCREEN_HEIGHT,fill:'gray'}).setPosition(SCREEN_WIDTH-32,SCREEN_HEIGHT/2).addChildTo(bg);
-*/
+    */
     label = Label({
       text:'',
       fontSize: 48,
@@ -91,35 +96,34 @@ phina.define('Main', {
     // 初期位置
     player.x = SCREEN_WIDTH/2;
     player.y = SCREEN_HEIGHT/2;
-    //anim.ss.getAnimation('down').frequency = 3;
 
 
     player.update= function(app){
       var k = app.keyboard;
 
       if(k.getKey('up')){
-        this.y -=5;
+        this.y -=speed;
         if(anim.currentAnimation.next!='up'){
           anim.gotoAndPlay('up');
         }
 
       }
       if(k.getKey('down')){
-        this.y +=5;
+        this.y +=speed;
         if(anim.currentAnimation.next!='down'){
           anim.gotoAndPlay('down');
         }
 
       }
       if(k.getKey('left')){
-        this.x -=5;
+        this.x -=speed;
         if(anim.currentAnimation.next!='left'){
           anim.gotoAndPlay('left');
         }
       }
 
       if(k.getKey('right')){
-        this.x +=5;
+        this.x +=speed;
         if(anim.currentAnimation.next!='right'){
           anim.gotoAndPlay('right');
         }
@@ -134,16 +138,25 @@ phina.define('Main', {
 
   update:function(){
     score++;
-    interval=Math.max(10,start-Math.floor(score/100));
-    //console.log(interval);
+    //interval=Math.max(20,start-Math.floor(score/200));
+    now++;
     label.text=score;
-    if(score%interval==0){
+
+    if(now==interval){
+
+      now=0;
+      count++;
+
+
+      if(count%5==0){
+        interval=Math.max(10,interval-1);
+      }
 
       // スプライト画像作成
 
       var enemy = Sprite('nasu', 96, 96).addChildTo(enemygroup).setSize(96,96);
       enemy.collider.setSize(32, 48).offset(0,8);
-
+                SoundManager.play('alert');
       // スプライトにフレームアニメーションをアタッチ
       var anim2 = FrameAnimation('nasu_sprite').attachTo(enemy);
       anim2.fit = false;
@@ -160,7 +173,7 @@ phina.define('Main', {
         pos.r=0;
         enemy.top = SCREEN_HEIGHT+32;
         enemy.vx=0;
-        enemy.vy=-5;
+        enemy.vy=-speed;
         break;
 
         case 1://down
@@ -170,7 +183,7 @@ phina.define('Main', {
         pos.r=180;
         enemy.bottom = 0-32;
         enemy.vx=0;
-        enemy.vy=5;
+        enemy.vy=speed;
         break;
 
         case 2://left
@@ -179,7 +192,7 @@ phina.define('Main', {
         pos.y=enemy.y;
         pos.r=-270;
         enemy.right = 0-32;
-        enemy.vx=5;
+        enemy.vx=speed;
         enemy.vy=0;
         break;
 
@@ -189,17 +202,18 @@ phina.define('Main', {
         pos.y=enemy.y;
         pos.r=-90;
         enemy.left = SCREEN_WIDTH+32;
-        enemy.vx=-5;
+        enemy.vx=-speed;
         enemy.vy=0;
         break;
 
       }
+
       var alert=Sprite('icon', 96, 96).setPosition(pos.x,pos.y).setRotation(pos.r).setScale(0.5).addChildTo(this)
-      alert.time=10;
+      alert.time=20;
       //    SoundManager.play('alert');
       alert.update=function(){
         alert.time--;
-        alert.alpha=(alert.time*0.1);
+        alert.alpha=(alert.time/20);
         if (alert.time==0) {
           alert.remove();
         }
@@ -215,6 +229,8 @@ phina.define('Main', {
           anim.gotoAndPlay('hit');
           anim2.gotoAndPlay('hit');
           label.remove();
+          SoundManager.stopMusic('bgm');
+          SoundManager.play('hit');
           self.app.pushScene(GameOver());
         }
 
@@ -286,6 +302,7 @@ phina.main(function() {
 
   // アプリケーションを生成
   var app = GameApp({
+    fps: 60, // fps指定
     query: '#canvas',
     // Scene01 から開始
     startLabel: 'main',
@@ -305,7 +322,7 @@ phina.main(function() {
     s.play().stop();
     app.domElement.removeEventListener('touchend', dummy);
   });
-
+  app.enableStats();  // コレだけ!!!
   // 実行
   app.run();
 });

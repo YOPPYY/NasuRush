@@ -11,31 +11,31 @@
 "up": {
 "frames": [9,10,11,10],
 "next": "up",
-"frequency": 6
+"frequency": 12
 },
 
 "down": {
 "frames": [6,7,8,7],
 "next": "down",
-"frequency": 6
+"frequency": 12
 },
 
 "right": {
 "frames": [12,13,14,13],
 "next": "right",
-"frequency": 6
+"frequency": 12
 },
 
 "left": {
 "frames": [15,16,17,16],
 "next": "left",
-"frequency": 6
+"frequency": 12
 },
 
 "hit": {
 "frames": [4],
 "next": "hit",
-"frequency": 6
+"frequency": 12
 }
 
 }
