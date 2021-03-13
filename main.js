@@ -160,8 +160,10 @@ phina.define('Main', {
     player.update= function(app){
       var k = app.keyboard;
 
+      //if(k.getKey('up') && k.getKey('down')){console.log("")}
       if(k.getKey('up')){
         this.y -=speed;
+        if(this.y<0+16){this.y=0+16}
         if(anim.currentAnimation.next!='up'){
           anim.gotoAndPlay('up');
         }
@@ -169,6 +171,7 @@ phina.define('Main', {
       }
       if(k.getKey('down')){
         this.y +=speed;
+        if(this.y>SCREEN_HEIGHT-16){this.y=SCREEN_HEIGHT-16}
         if(anim.currentAnimation.next!='down'){
           anim.gotoAndPlay('down');
         }
@@ -176,6 +179,7 @@ phina.define('Main', {
       }
       if(k.getKey('left')){
         this.x -=speed;
+        if(this.x<0+16){this.x=0+16}
         if(anim.currentAnimation.next!='left'){
           anim.gotoAndPlay('left');
         }
@@ -183,6 +187,7 @@ phina.define('Main', {
 
       if(k.getKey('right')){
         this.x +=speed;
+        if(this.x>SCREEN_WIDTH-16){this.x=SCREEN_WIDTH-16}
         if(anim.currentAnimation.next!='right'){
           anim.gotoAndPlay('right');
         }
@@ -205,8 +210,8 @@ phina.define('Main', {
       count++;
 
 
-      if(count%10==0){
-        interval=Math.max(15,interval-1);
+      if(count%20==0){
+        interval=Math.max(10,interval-1);
         console.log(interval);
       }
 
@@ -214,7 +219,7 @@ phina.define('Main', {
 
       var enemy = Sprite('nasu', 96, 96).addChildTo(enemygroup).setSize(96,96);
       enemy.collider.setSize(32, 48).offset(0,8);
-                SoundManager.play('alert');
+      SoundManager.play('alert');
       // スプライトにフレームアニメーションをアタッチ
       var anim2 = FrameAnimation('nasu_sprite').attachTo(enemy);
       anim2.fit = false;
@@ -349,7 +354,7 @@ phina.define("GameOver", {
   },
 
   onpointstart: function() {
-      location.reload();
+    location.reload();
   }
 
 });
