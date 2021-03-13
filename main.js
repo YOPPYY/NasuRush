@@ -3,7 +3,7 @@ phina.globalize();
 
 var SCREEN_WIDTH = 640;
 var SCREEN_HEIGHT = 960;
-var start=50;
+var start=30;
 var interval=start;
 var animation=['up','down','left','right'];
 var anim;
@@ -38,6 +38,65 @@ var ASSETS = {
     'hit': 'sound/damage.mp3',
   }
 };
+
+phina.define('Title', {
+  superClass: 'DisplayScene',
+  init: function() {
+    this.superInit();
+    self=this;
+    this.backgroundColor = 'gray';
+
+    var p1=[1,1,1,1,0,0,0,1,1,1,1];
+    var p2=[1,1,1,0,0,0,1,1,1];
+    for(var i=0; i<p1.length; i++){
+      if(p1[i]==1){
+        var rect=RectangleShape({width:SCREEN_WIDTH/3,height:32,fill:'white'}).setPosition(SCREEN_WIDTH/2,SCREEN_HEIGHT*i/p1.length+40).addChildTo(this);
+      }
+    }
+    for(var i=0; i<p2.length; i++){
+      if(p2[i]==1){
+        var rect=RectangleShape({width:32,height:SCREEN_HEIGHT/4,fill:'white'}).setPosition(SCREEN_WIDTH*i/p2.length+36,SCREEN_HEIGHT/2).addChildTo(this);
+      }
+    }
+
+    label = Label({
+      text:'ナスラッシュ',
+      fontSize: 80,
+      x:SCREEN_WIDTH/2,
+      y:SCREEN_HEIGHT/4,
+      fill:'white',
+      stroke:'purple',
+      strokeWidth:5,
+    }).addChildTo(this);
+
+    label = Label({
+      text:'TAP TO START',
+      fontSize: 64,
+      x:SCREEN_WIDTH/2,
+      y:SCREEN_HEIGHT*3/4,
+      fill:'white',
+      stroke:'purple',
+      strokeWidth:5,
+    }).addChildTo(this);
+
+    // スプライト画像作成
+    player = Sprite('toma', 64, 64).addChildTo(this).setSize(96,96);
+    player.x=SCREEN_WIDTH/2;
+    player.y=SCREEN_HEIGHT/2;
+
+    // スプライトにフレームアニメーションをアタッチ
+    anim = FrameAnimation('toma_sprite').attachTo(player);
+    anim.fit = false;
+    // アニメーションを指定
+    anim.gotoAndPlay('down');
+
+
+  },
+
+  onpointstart: function() {
+    this.exit();
+  }
+});
 
 phina.define('Main', {
   superClass: 'DisplayScene',
@@ -132,8 +191,6 @@ phina.define('Main', {
     }
 
 
-
-
   },
 
   update:function(){
@@ -148,8 +205,9 @@ phina.define('Main', {
       count++;
 
 
-      if(count%5==0){
-        interval=Math.max(10,interval-1);
+      if(count%10==0){
+        interval=Math.max(15,interval-1);
+        console.log(interval);
       }
 
       // スプライト画像作成
@@ -246,12 +304,6 @@ phina.define('Main', {
   },
 
 
-  onpointstart: function() {
-
-  }
-
-
-
 });
 
 /*
@@ -286,15 +338,20 @@ phina.define("GameOver", {
     //    SoundManager.playMusic('hit');
 
     // ポーズ解除ボタン
-    Button({
-      text: 'Retry',
+    Label({
+      text: 'TAP TO RETRY',
+      fill: 'white',
+      stroke: 'black',
+      fontSize:48,
     }).addChildTo(this)
-    .setPosition(this.gridX.center(), SCREEN_HEIGHT*2/3)
-    .onpush = function() {
-      location.reload();
-    };
+    .setPosition(this.gridX.center(), SCREEN_HEIGHT*2/3);
 
   },
+
+  onpointstart: function() {
+      location.reload();
+  }
+
 });
 
 // メイン処理
@@ -305,10 +362,15 @@ phina.main(function() {
     fps: 60, // fps指定
     query: '#canvas',
     // Scene01 から開始
-    startLabel: 'main',
+    startLabel: 'title',
     assets: ASSETS,
     // シーンのリストを引数で渡す
     scenes: [
+      {
+        className: 'Title',
+        label: 'title',
+        next: 'main',
+      },
       {
         className: 'Main',
         label: 'main',
@@ -316,12 +378,7 @@ phina.main(function() {
     ]
   });
 
-  app.domElement.addEventListener('touchend', function dummy() {
-    var s = phina.asset.Sound();
-    s.loadFromBuffer();
-    s.play().stop();
-    app.domElement.removeEventListener('touchend', dummy);
-  });
+
   app.enableStats();  // コレだけ!!!
   // 実行
   app.run();
