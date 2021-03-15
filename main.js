@@ -14,6 +14,7 @@ var label;
 var speed=2.5;
 var now=0;
 var count=0;
+var breaktime=20;
 
 // グローバル変数
 var playergroup = null;
@@ -206,17 +207,19 @@ phina.define('Main', {
     //interval=Math.max(20,start-Math.floor(score/200));
     now++;
     label.text=score;
+    if(score%10==0){
+        interval=Math.max(10,interval);
+        if(interval==breaktime){
+          interval=breaktime+5;
+          breaktime=Math.max(10,breaktime-5);
+        }
+        console.log(interval + " "+ breaktime);
+    }
 
     if(now==interval){
 
       now=0;
       count++;
-
-
-      if(count%20==0){
-        interval=Math.max(10,interval-1);
-        console.log(interval);
-      }
 
       // スプライト画像作成
 
@@ -364,7 +367,7 @@ phina.define("GameOver", {
         var getrank = i+1;
         result =  (i+1) + "位 : " + getscore + " " + getname;
         label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
-        ranking.push({r:getscore,s:getscore,n:getname});
+        ranking.push({s:getscore,n:getname});
       }
 
       //判定
@@ -390,7 +393,7 @@ phina.define("GameOver", {
          });
 
         // 保存に成功した場合の処理
-        ranking.splice(rank-1,0,{r:rank,s:score,n:name});
+        ranking.splice(rank-1,0,{s:score,n:name});
         console.log(ranking);
         for(var i=0; i<ranking.length-1; i++){
           label[i].remove();
