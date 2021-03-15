@@ -19,6 +19,9 @@ var count=0;
 var playergroup = null;
 var enemyrgroup = null;
 
+// mobile backendアプリとの連携
+var ncmb = new NCMB("5e30184db77257aa7a8d40dcff29327e40b2f51e02c9114340b17471b1d693aa","cd55c73b9c3e6094a3ccd11a29d7817fc80d338cdb38afa801c9c93bd2ff3af4");
+
 var ASSETS = {
   // 画像
   image: {
@@ -328,13 +331,82 @@ phina.define("GameOver", {
     var hi=0
     if(!localStorage.getItem('hi')){hi=0}
     else{hi = parseInt(localStorage.getItem('hi'),10);}
-    var label1 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2-32,fontSize:48,fill:'white',stroke:'black',text:'スコア : '+score}).addChildTo(this);
-    var label2 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+32,fontSize:48,fill:'white',stroke:'black',text:'ハイスコア : '+hi}).addChildTo(this);
 
+    var color='white'
     if(hi<score){
-      var label3 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/3,fontSize:48,fill:'yellow',stroke:'black',text:'NEW RECORD'}).addChildTo(this);
+      //var label3 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/3,fontSize:48,fill:'yellow',stroke:'black',text:'NEW RECORD'}).addChildTo(this);
       localStorage.setItem('hi',score);
+      color='yellow';
     }
+
+    var label1 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2-32,fontSize:48,fill:color,stroke:'black',text:'スコア : '+score}).addChildTo(this);
+    var label2 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+32,fontSize:48,fill:'white',stroke:'black',text:'ハイスコア : '+hi}).addChildTo(this);
+    var label4 = Label({x:SCREEN_WIDTH/2,y:75,fontSize:48,fill:'yellow',stroke:'black',text:'ランキング'}).addChildTo(this);
+
+    var result=''
+    var group = DisplayElement().addChildTo(this);
+    var ranking=[];
+    // クラスのTestClassを作成
+    var TestClass = ncmb.DataStore("HiScore");
+    // データストアへの登録
+    var testClass = new TestClass();
+    // スコアの降順で5件取得
+    TestClass.order("Score", true)
+    .limit(5)
+    .fetchAll()
+    .then(function(objects){
+
+      // 取得に成功した場合の処理
+
+      for (var i=0; i<objects.length; i++) {
+        var getscore = objects[i].get("Score");
+        var getname = objects[i].get("name");
+        var getrank = i+1;
+        result =  (i+1) + "位 : " + getscore + " " + getname;
+        label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
+        ranking.push({r:getscore,s:getscore,n:getname});
+      }
+
+      //判定
+      var rank=1;
+      for(var i=0; i<ranking.length; i++){
+        if(score < ranking[i].s){
+          rank=i+2;
+        }
+      }
+
+      //登録
+      if(rank<=5){
+        // 登録
+        var name = prompt(rank + "位にランクイン！\n名前を入力してください","Nanashi");
+        testClass.set("Score", score);
+        testClass.set("name", name);
+        testClass.save()
+        .then(function(){
+           // 保存に成功した場合の処理
+         })
+        .catch(function(err){
+           // 保存に失敗した場合の処理
+         });
+
+        // 保存に成功した場合の処理
+        ranking.splice(rank-1,0,{r:rank,s:score,n:name});
+        console.log(ranking);
+        for(var i=0; i<ranking.length-1; i++){
+          label[i].remove();
+          result=i+1 +"位 : "+ranking[i].s+" "+ranking[i].n;
+          label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
+        }
+      }
+
+    })
+    .catch(function(err){
+      // 取得に失敗した場合の処理
+    });
+
+
+
+
 
     //SoundManager.play();
     //var label4 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+128,fontSize:48,fill:'white',stroke:'black',text:''}).addChildTo(this);
