@@ -11,6 +11,8 @@ var temp;
 var self;
 var score=0;
 var label;
+var label2;
+var level=1;
 var speed=2.5;
 var now=0;
 var count=0;
@@ -145,6 +147,17 @@ phina.define('Main', {
       strokeWidth:5,
     }).addChildTo(this);
 
+    label2 = Label({
+      text: 'レベル : '+level,
+      fontSize: 24,
+      x:120,
+      y:32,
+      fill:'white',
+      stroke:'black',
+      strokeWidth:5,
+    }).addChildTo(this);
+
+
     // スプライト画像作成
     player = Sprite('toma', 64, 64).addChildTo(playergroup)
     .setSize(96,96);
@@ -171,16 +184,16 @@ phina.define('Main', {
         if(anim.currentAnimation.next!='up'){
           anim.gotoAndPlay('up');
         }
-
       }
+
       if(k.getKey('down')){
         this.y +=speed;
         if(this.y>SCREEN_HEIGHT-16){this.y=SCREEN_HEIGHT-16}
         if(anim.currentAnimation.next!='down'){
           anim.gotoAndPlay('down');
         }
-
       }
+
       if(k.getKey('left')){
         this.x -=speed;
         if(this.x<0+16){this.x=0+16}
@@ -207,14 +220,21 @@ phina.define('Main', {
     //interval=Math.max(20,start-Math.floor(score/200));
     now++;
     label.text=score;
+
     if(score%500==0){
+      level++;
+
         interval=Math.max(10,interval-1);
         //if(interval==breaktime){
         //  interval=breaktime+3;
         //  breaktime=Math.max(10,interval-6);
         //}
-
+        var t='';
+        if(interval==10){t='MAX'}else{t=level;}
+        label2.text= 'レベル : '+t;
     }
+
+
     //console.log(interval);
     if(now>interval){
 
