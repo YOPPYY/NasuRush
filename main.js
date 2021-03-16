@@ -207,8 +207,8 @@ phina.define('Main', {
     //interval=Math.max(20,start-Math.floor(score/200));
     now++;
     label.text=score;
-    if(score%10==0){
-        interval=Math.max(10,interval);
+    if(score%100==0){
+        interval=Math.max(10,interval-1);
         if(interval==breaktime){
           interval=breaktime+5;
           breaktime=Math.max(10,breaktime-5);
@@ -216,7 +216,7 @@ phina.define('Main', {
         console.log(interval + " "+ breaktime);
     }
 
-    if(now==interval){
+    if(now>interval){
 
       now=0;
       count++;
