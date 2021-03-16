@@ -14,7 +14,7 @@ var label;
 var speed=2.5;
 var now=0;
 var count=0;
-var breaktime=20;
+var breaktime=30-6;
 
 // グローバル変数
 var playergroup = null;
@@ -207,15 +207,15 @@ phina.define('Main', {
     //interval=Math.max(20,start-Math.floor(score/200));
     now++;
     label.text=score;
-    if(score%100==0){
+    if(score%50==0){
         interval=Math.max(10,interval-1);
-        if(interval==breaktime){
-          interval=breaktime+5;
-          breaktime=Math.max(10,breaktime-5);
-        }
-        console.log(interval + " "+ breaktime);
-    }
+        //if(interval==breaktime){
+        //  interval=breaktime+3;
+        //  breaktime=Math.max(10,interval-6);
+        //}
 
+    }
+        console.log(interval);
     if(now>interval){
 
       now=0;
