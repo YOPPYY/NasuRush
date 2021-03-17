@@ -25,7 +25,7 @@ var enemyrgroup = null;
 
 // mobile backendアプリとの連携
 var ncmb = new NCMB("5e30184db77257aa7a8d40dcff29327e40b2f51e02c9114340b17471b1d693aa","cd55c73b9c3e6094a3ccd11a29d7817fc80d338cdb38afa801c9c93bd2ff3af4");
-
+var dataurl ='https://raw.githubusercontent.com/YOPPYY/NasuRush/master/data.json';
 var ASSETS = {
   // 画像
   image: {
@@ -101,10 +101,14 @@ phina.define('Title', {
   },
 
   onpointstart: function() {
-    $.getJSON('https://raw.githubusercontent.com/YOPPYY/NasuRush/master/data.json', (data) => {
+
+    $.getJSON(dataurl, (data) => {
  // JSONデータを受信した後に実行する処理
-}
-    this.exit();
+
+
+})
+ console.log(data);
+    //this.exit();
   }
 });
 
