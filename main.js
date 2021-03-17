@@ -17,6 +17,7 @@ var speed=2.5;
 var now=0;
 var count=0;
 var breaktime=30-6;
+var data;
 
 // グローバル変数
 var playergroup = null;
@@ -100,6 +101,9 @@ phina.define('Title', {
   },
 
   onpointstart: function() {
+    $.getJSON('https://raw.githubusercontent.com/YOPPYY/NasuRush/master/data.json', (data) => {
+ // JSONデータを受信した後に実行する処理
+}
     this.exit();
   }
 });
