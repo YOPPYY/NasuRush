@@ -18,8 +18,11 @@ var now=0;
 var count=0;
 var breaktime=30-6;
 var data;
+var circle;
+var circle2;
 
 // グローバル変数
+var group;
 var playergroup = null;
 var enemyrgroup = null;
 
@@ -51,6 +54,7 @@ phina.define('Title', {
   init: function() {
     this.superInit();
     self=this;
+    group = DisplayElement().addChildTo(this);
     this.backgroundColor = 'gray';
 
     var p1=[1,1,1,1,0,0,0,1,1,1,1];
@@ -90,37 +94,84 @@ phina.define('Title', {
     Button({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT-100,width:200,height:50,fill:'yellow',text:'ランキング',fontColor: 'black'})
     .addChildTo(this)
     .onpointstart = function(){
-      $.getJSON(dataurl, (getdata) => {
-        // JSONデータを受信した後に実行する処理
-        //data = getdata;
-        var t='ランキング'
-        for(var i=0; i<5; i++){
-          t += '\n' + getdata[i].rank + "位:";
-          t += getdata[i].score + ' ';
-          t += getdata[i].name;
-        }
-        alert(t);
-      })
-    }
-    */
-    // スプライト画像作成
-    player = Sprite('toma', 64, 64).addChildTo(this).setSize(96,96);
-    player.x=SCREEN_WIDTH/2;
-    player.y=SCREEN_HEIGHT/2;
-
-    // スプライトにフレームアニメーションをアタッチ
-    anim = FrameAnimation('toma_sprite').attachTo(player);
-    anim.fit = false;
-    // アニメーションを指定
-    anim.gotoAndPlay('down');
-
-
-  },
-
-  onpointstart: function() {
-
-    this.exit();
+    $.getJSON(dataurl, (getdata) => {
+    // JSONデータを受信した後に実行する処理
+    //data = getdata;
+    var t='ランキング'
+    for(var i=0; i<5; i++){
+    t += '\n' + getdata[i].rank + "位:";
+    t += getdata[i].score + ' ';
+    t += getdata[i].name;
   }
+  alert(t);
+})
+}
+*/
+// スプライト画像作成
+player = Sprite('toma', 64, 64).addChildTo(this).setSize(96,96);
+player.x=SCREEN_WIDTH/2;
+player.y=SCREEN_HEIGHT/2;
+
+// スプライトにフレームアニメーションをアタッチ
+anim = FrameAnimation('toma_sprite').attachTo(player);
+anim.fit = false;
+// アニメーションを指定
+anim.gotoAndPlay('down');
+
+
+circle2 = CircleShape({
+  radius: 100,
+  fill: 'white',
+  x: 100,
+  y: 100,
+}).addChildTo(this);
+circle2.alpha=0.5;
+
+circle = CircleShape({
+  fill: 'red',
+  x: 100,
+  y: 100,
+}).addChildTo(this);
+circle.alpha=0.5;
+
+
+
+
+},
+
+onpointstart: function(e) {
+  circle2.x = e.pointer.x;
+  circle2.y = e.pointer.y;
+  circle.x = e.pointer.x;
+  circle.y = e.pointer.y;
+  //this.exit();
+},
+
+onpointstay: function(e) {
+
+  var inputX = e.pointer.x;
+  var inputY = e.pointer.y;
+  var tX;
+  var tY;
+
+  circle.x = e.pointer.x;
+  circle.y = e.pointer.y;
+
+  if(inputX>circle2.x+25){inputX=speed}
+  else if(inputX<circle2.x-25){inputX=-speed}
+  else {inputX=0}
+  if(inputY>circle2.y+25){inputY=speed}
+  else if(inputY<circle2.y-25){inputY=-speed}
+  else {inputY=0}
+  var dx = inputX;// - circle2.x;
+  var dy = inputY;// - circle2.y;
+  player.x += dx ;
+  player.y += dy ;
+  console.log(dx +" "+ dy);
+  //this.exit();
+},
+
+
 });
 
 phina.define('Main', {
@@ -173,7 +224,7 @@ phina.define('Main', {
       y:32,
       fill:'white',
       stroke:'black',
-      strokeWidth:5,
+      strokeWidth:3,
     }).addChildTo(this);
 
 
@@ -340,7 +391,7 @@ phina.define('Main', {
           label.remove();
           SoundManager.stopMusic('bgm');
           SoundManager.play('hit');
-          self.app.pushScene(GameOver());
+          self.app.pushScene(GameOver(score));
         }
 
         if (this.top > SCREEN_HEIGHT+64 || this.bottom < 0-64) {
@@ -364,7 +415,7 @@ phina.define("GameOver", {
   // 継承
   superClass: 'DisplayScene',
   // コンストラクタ
-  init: function() {
+  init: function(score) {
     // 親クラス初期化
     this.superInit();
     // 背景を半透明化
@@ -389,66 +440,66 @@ phina.define("GameOver", {
 
     var group = DisplayElement().addChildTo(this);
     var ranking=[];
-/*
+    /*
     $.getJSON(dataurl, (getdata) => {
-      // JSONデータを受信した後に実行する処理
-      //data = getdata;
-      var t='ランキング'
-      for(var i=0; i<5; i++){
-        var getrank = i+1;
-        var getscore = getdata[i].score;
-        var getname = getdata[i].name;
+    // JSONデータを受信した後に実行する処理
+    //data = getdata;
+    var t='ランキング'
+    for(var i=0; i<5; i++){
+    var getrank = i+1;
+    var getscore = getdata[i].score;
+    var getname = getdata[i].name;
 
-        var result =  (i+1) + "位 : " + getscore + " " + getname;
-        label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
+    var result =  (i+1) + "位 : " + getscore + " " + getname;
+    label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
 
-      }
+  }
 
-      //判定
-      var rank=1;
-      for(var i=0; i<getdata.length; i++){
-        if(score < getdata[i].score){
-          rank=i+2;
-        }
-      }
-
-
-      //登録
-      if(rank<=5){
-        // 登録
-        var name = prompt(rank + "位にランクイン！\n名前を入力してください","Nanashi");
-        var add ={ rank:rank, score:score, name:name};
-        getdata.splice(rank-1,0,add);
-      }
-      getdata.pop();
-
-      //更新
-      for(var i=0; i<5; i++){
-        label[i].remove();
-        result=i+1 +"位 : "+getdata[i].score+" "+getdata[i].name;
-        label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
-      }
+  //判定
+  var rank=1;
+  for(var i=0; i<getdata.length; i++){
+  if(score < getdata[i].score){
+  rank=i+2;
+}
+}
 
 
-      $.post(dataurl, getdata, function() {
-        // このコールバックはpostが成功した際に実行されます
-        alert("送信しました");
-      })
-    })*/
+//登録
+if(rank<=5){
+// 登録
+var name = prompt(rank + "位にランクイン！\n名前を入力してください","Nanashi");
+var add ={ rank:rank, score:score, name:name};
+getdata.splice(rank-1,0,add);
+}
+getdata.pop();
 
-    // クラスのTestClassを作成
-    var TestClass = ncmb.DataStore("HiScore");
-    // データストアへの登録
-    var testClass = new TestClass();
-    // スコアの降順で5件取得
-    TestClass.order("Score", true)
-    .limit(5)
-    .fetchAll()
-    .then(function(objects){
+//更新
+for(var i=0; i<5; i++){
+label[i].remove();
+result=i+1 +"位 : "+getdata[i].score+" "+getdata[i].name;
+label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
+}
 
-    // 取得に成功した場合の処理
 
-    for (var i=0; i<objects.length; i++) {
+$.post(dataurl, getdata, function() {
+// このコールバックはpostが成功した際に実行されます
+alert("送信しました");
+})
+})*/
+
+// クラスのTestClassを作成
+var TestClass = ncmb.DataStore("HiScore");
+// データストアへの登録
+var testClass = new TestClass();
+// スコアの降順で5件取得
+TestClass.order("Score", true)
+.limit(5)
+.fetchAll()
+.then(function(objects){
+
+  // 取得に成功した場合の処理
+
+  for (var i=0; i<objects.length; i++) {
     var getscore = objects[i].get("Score");
     var getname = objects[i].get("name");
     var getrank = i+1;
@@ -460,38 +511,38 @@ phina.define("GameOver", {
   //判定
   var rank=1;
   for(var i=0; i<ranking.length; i++){
-  if(score < ranking[i].s){
-  rank=i+2;
-}
-}
+    if(score < ranking[i].s){
+      rank=i+2;
+    }
+  }
 
-//登録
-if(rank<=5){
-// 登録
-var name = prompt(rank + "位にランクイン！\n名前を入力してください","Nanashi");
-testClass.set("Score", score);
-testClass.set("name", name);
-testClass.save()
-.then(function(){
-// 保存に成功した場合の処理
+  //登録
+  if(rank<=5){
+    // 登録
+    var name = prompt(rank + "位にランクイン！\n名前を入力してください","Nanashi");
+    testClass.set("Score", score);
+    testClass.set("name", name);
+    testClass.save()
+    .then(function(){
+      // 保存に成功した場合の処理
+    })
+    .catch(function(err){
+      // 保存に失敗した場合の処理
+    });
+
+    // 保存に成功した場合の処理
+    ranking.splice(rank-1,0,{s:score,n:name});
+    console.log(ranking);
+    for(var i=0; i<ranking.length-1; i++){
+      label[i].remove();
+      result=i+1 +"位 : "+ranking[i].s+" "+ranking[i].n;
+      label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
+    }
+  }
+
 })
 .catch(function(err){
-// 保存に失敗した場合の処理
-});
-
-// 保存に成功した場合の処理
-ranking.splice(rank-1,0,{s:score,n:name});
-console.log(ranking);
-for(var i=0; i<ranking.length-1; i++){
-label[i].remove();
-result=i+1 +"位 : "+ranking[i].s+" "+ranking[i].n;
-label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
-}
-}
-
-})
-.catch(function(err){
-// 取得に失敗した場合の処理
+  // 取得に失敗した場合の処理
 });
 
 
