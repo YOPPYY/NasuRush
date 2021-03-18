@@ -18,8 +18,10 @@ var now=0;
 var count=0;
 var breaktime=30-6;
 var data;
-var circle;
-var circle2;
+var white;
+var red;
+var dx=0;
+var dy=0;
 
 // グローバル変数
 var group;
@@ -119,57 +121,20 @@ anim.fit = false;
 anim.gotoAndPlay('down');
 
 
-circle2 = CircleShape({
-  radius: 100,
-  fill: 'white',
-  x: 100,
-  y: 100,
-}).addChildTo(this);
-circle2.alpha=0.5;
 
-circle = CircleShape({
-  fill: 'red',
-  x: 100,
-  y: 100,
-}).addChildTo(this);
-circle.alpha=0.5;
 
 
 
 
 },
 
-onpointstart: function(e) {
-  circle2.x = e.pointer.x;
-  circle2.y = e.pointer.y;
-  circle.x = e.pointer.x;
-  circle.y = e.pointer.y;
-  //this.exit();
+update:function(){
+
 },
 
-onpointstay: function(e) {
-
-  var inputX = e.pointer.x;
-  var inputY = e.pointer.y;
-  var tX;
-  var tY;
-
-  circle.x = e.pointer.x;
-  circle.y = e.pointer.y;
-
-  if(inputX>circle2.x+25){inputX=speed}
-  else if(inputX<circle2.x-25){inputX=-speed}
-  else {inputX=0}
-  if(inputY>circle2.y+25){inputY=speed}
-  else if(inputY<circle2.y-25){inputY=-speed}
-  else {inputY=0}
-  var dx = inputX;// - circle2.x;
-  var dy = inputY;// - circle2.y;
-  player.x += dx ;
-  player.y += dy ;
-  console.log(dx +" "+ dy);
-  //this.exit();
-},
+onpointstart:function(){
+  this.exit();
+}
 
 
 });
@@ -248,42 +213,139 @@ phina.define('Main', {
       var k = app.keyboard;
       var flag_x = false;
       var flag_y = false;
+      var aniname='down';
       //if(k.getKey('up') && k.getKey('down')){console.log("")}
       if(k.getKey('up') || k.getKey('w')){
         this.y -=speed;
+            aniname='up';
         if(this.y<0+16){this.y=0+16}
-        if(anim.currentAnimation.next!='up'){
-          anim.gotoAndPlay('up');
-        }
+
       }
 
       if(k.getKey('down') || k.getKey('s')){
         this.y +=speed;
+            aniname='down';
         if(this.y>SCREEN_HEIGHT-16){this.y=SCREEN_HEIGHT-16}
-        if(anim.currentAnimation.next!='down'){
-          anim.gotoAndPlay('down');
-        }
+
       }
 
       if(k.getKey('left') || k.getKey('a')){
         this.x -=speed;
+            aniname='left';
         if(this.x<0+16){this.x=0+16}
-        if(anim.currentAnimation.next!='left'){
-          anim.gotoAndPlay('left');
-        }
+
       }
 
       if(k.getKey('right') || k.getKey('d')){
         this.x +=speed;
+            aniname='right';
         if(this.x>SCREEN_WIDTH-16){this.x=SCREEN_WIDTH-16}
-        if(anim.currentAnimation.next!='right'){
-          anim.gotoAndPlay('right');
-        }
+
+      }
+      if(anim.currentAnimation.next!=aniname){
+        anim.gotoAndPlay(aniname);
       }
 
     }
 
 
+  },
+  onpointstart: function(e) {
+
+    white = RectangleShape({
+
+      fill: 'white',
+      width: 200-32,
+      height: 200-32,
+    }).addChildTo(this);
+    white.alpha=0.5;
+
+    red = CircleShape({
+      fill: 'red',
+      x: 100,
+      y: 100,
+    }).addChildTo(this);
+    red.alpha=0.5;
+
+    white.x = e.pointer.x;
+    white.y = e.pointer.y;
+    red.x = e.pointer.x;
+    red.y = e.pointer.y;
+    //this.exit();
+  },
+
+  onpointstay: function(e) {
+
+  },
+
+  onpointmove: function(e) {
+
+
+    var vec_x = e.pointer.x-white.x;
+    var vec_y = e.pointer.y-white.y;
+
+    red.x = e.pointer.x;
+    red.y = e.pointer.y;
+    //console.log(e.pointer.x+" "+white.x);
+    //console.log(e.pointer.y+" "+white.y);
+    var limit =100;
+    var animane='down';
+    var input_x;
+    var input_y;
+
+    //上限、下限設定
+    if(vec_x!=0){
+      if(vec_x>0){
+        if(vec_x>limit){dx=speed;red.fill='blue';}
+        else{dx = vec_x/limit}
+      }
+      if(vec_x<0){
+        if(vec_x<-limit){dx=-speed;red.fill='blue';}
+        else{dx = -(-vec_x/limit)}
+      }
+    }
+        else{dx=0}
+
+    if(vec_y!=0){
+      if(vec_y>0){
+        aniname='down';
+        if(vec_y>limit){dy=speed;red.fill='blue';}
+        else{dy = vec_y/limit}
+      }
+      if(vec_y<0){
+        aniname='up';
+        if(vec_y<-limit){dy=-speed;red.fill='blue';}
+        else{dy = -(-vec_y/limit)}
+      }
+    }
+        else{dy=0}
+
+    if(vec_x<limit && vec_x>-limit && vec_y<limit && vec_y>-limit){
+      red.fill='red';
+    }
+
+    if(Math.abs(vec_x)>Math.abs(vec_y)){
+      if(vec_x>0){aniname='right';}
+      else{aniname='left';}
+    }
+
+    if(anim.currentAnimation.next!= aniname){
+      console.log(aniname);
+      anim.gotoAndPlay(aniname);
+    }
+
+
+
+
+
+    //this.exit();
+  },
+
+  onpointend:function(e){
+    dy=0;
+    dx=0;
+    red.remove();
+    white.remove();
   },
 
   update:function(){
@@ -291,6 +353,9 @@ phina.define('Main', {
     //interval=Math.max(20,start-Math.floor(score/200));
     now++;
     label.text=score;
+    player.x += dx ;
+    player.y += dy ;
+    //console.log(dx+" : "+dy);
 
     if(score%600==0){
       level++;
