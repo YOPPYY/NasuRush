@@ -385,6 +385,9 @@ update:function(){
   //interval=Math.max(20,start-Math.floor(score/200));
   now++;
   label.text=score;
+  if(dx>speed){dx=speed;}  if(dx<-speed){dx=-speed;}
+  if(dy>speed){dy=speed;}  if(dy<-speed){dy=-speed;}
+
   player.x += dx ;
   player.y += dy ;
 
@@ -633,7 +636,7 @@ TestClass.order("Score", true)
 
     // 保存に成功した場合の処理
     ranking.splice(rank-1,0,{s:score,n:name});
-    console.log(ranking);
+    //console.log(ranking);
     for(var i=0; i<ranking.length-1; i++){
       label[i].remove();
       result=i+1 +"位 : "+ranking[i].s+" "+ranking[i].n;
@@ -656,7 +659,7 @@ TestClass.order("Score", true)
 
 // ポーズ解除ボタン
 Label({
-  text: 'TAP TO RETRY',
+  text: 'SPACE,ENTERキー\nor TAP\nTO RETRY',
   fill: 'white',
   stroke: 'black',
   fontSize:48,
@@ -665,9 +668,18 @@ Label({
 
 },
 
+update:function(app){
+
+  var k = app.keyboard;
+
+  if(k.getKey('space') || k.getKey('enter')){
+    location.reload();
+  }
+},
 onpointstart: function() {
   location.reload();
-}
+},
+
 
 });
 
