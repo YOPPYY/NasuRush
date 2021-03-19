@@ -15,14 +15,14 @@ var label2;
 var level=1;
 var speed=2.5;
 var now=0;
-var count=0;
-var breaktime=30-6;
+//var count=0;
+const time= 450;
 var data;
 var white;
 var red;
 var dx=0;
 var dy=0;
-
+var aniname='down';
 // グローバル変数
 var group;
 var playergroup = null;
@@ -213,34 +213,26 @@ phina.define('Main', {
       var k = app.keyboard;
       var flag_x = false;
       var flag_y = false;
-      var aniname='down';
+
       //if(k.getKey('up') && k.getKey('down')){console.log("")}
       if(k.getKey('up') || k.getKey('w')){
         this.y -=speed;
-            aniname='up';
-        if(this.y<0+16){this.y=0+16}
-
+        aniname='up';
       }
 
       if(k.getKey('down') || k.getKey('s')){
         this.y +=speed;
-            aniname='down';
-        if(this.y>SCREEN_HEIGHT-16){this.y=SCREEN_HEIGHT-16}
-
+        aniname='down';
       }
 
       if(k.getKey('left') || k.getKey('a')){
         this.x -=speed;
-            aniname='left';
-        if(this.x<0+16){this.x=0+16}
-
+        aniname='left';
       }
 
       if(k.getKey('right') || k.getKey('d')){
         this.x +=speed;
-            aniname='right';
-        if(this.x>SCREEN_WIDTH-16){this.x=SCREEN_WIDTH-16}
-
+        aniname='right';
       }
       if(anim.currentAnimation.next!=aniname){
         anim.gotoAndPlay(aniname);
@@ -248,15 +240,13 @@ phina.define('Main', {
 
     }
 
-
   },
   onpointstart: function(e) {
 
-    white = RectangleShape({
+    white = CircleShape({
 
       fill: 'white',
-      width: 200-32,
-      height: 200-32,
+      radius:100,
     }).addChildTo(this);
     white.alpha=0.5;
 
@@ -280,195 +270,241 @@ phina.define('Main', {
 
   onpointmove: function(e) {
 
-
+    dy=0;
+    dx=0;
     var vec_x = e.pointer.x-white.x;
     var vec_y = e.pointer.y-white.y;
 
     red.x = e.pointer.x;
     red.y = e.pointer.y;
-    //console.log(e.pointer.x+" "+white.x);
-    //console.log(e.pointer.y+" "+white.y);
-    var limit =100;
+
+    var r = 100; //limit_rad
+
     var animane='down';
-    var input_x;
-    var input_y;
+
 
     //上限、下限設定
+    //whiteとpointerからangleを計算
+    //(white.x,white.y)(e.pointer.x,e.pointer.y)
+    //Math.atan2( y2 - y1, x2 - x1 ) ;
+    var x1=white.x;
+    var y1=white.y;
+    var x2=e.pointer.x;
+    var y2=e.pointer.y;
+    var rad = Math.atan2( y2 - y1, x2 - x1 ) ;
+    //var angle = rad * ( 180 / Math.PI );
+    //console.log(angle);
+    //r,angleからlimit_x,limit_yを計算
+    var limit_x = white.x + Math.cos(rad) * r;
+    var limit_y = white.y + Math.sin(rad) * r;
+    var limit_x2 = white.x + Math.cos(rad) * (r+32);
+    var limit_y2 = white.y + Math.sin(rad) * (r+32);
+    //console.log(limit_x+","+limit_y)
+
+    //vec_x,vec_yからdx,dy計算
+    //
+    var vec_r = Math.min(100,Math.sqrt( Math.pow( x2-x1, 2 ) + Math.pow( y2-y1, 2 ) )) ;
+
+
+
+
+    var fill='red';
+
+
+    if(vec_x>0){
+      if(vec_x>limit_x-white.x){vec_x=limit_x-white.x;fill='blue';red.x=limit_x2}
+      dx=vec_x/r *speed;
+    }
+    if(vec_x<0){
+      if(vec_x<limit_x-white.x){vec_x=limit_x-white.x;fill='blue';red.x=limit_x2}
+      dx=vec_x/r *speed;
+    }
+    if(vec_y>0){
+      if(vec_y>limit_y-white.y){vec_y=limit_y-white.y;fill='blue';red.y=limit_y2}
+      dy=vec_y/r *speed;
+      aniname='down';
+    }
+    if(vec_y<0){
+      if(vec_y<limit_y-white.y){vec_y=limit_y-white.y;fill='blue';red.y=limit_y2}
+      dy=vec_y/r *speed;
+      aniname='up';
+    }
+
+    /*
+    //入力
     if(vec_x!=0){
-      if(vec_x>0){
-        if(vec_x>limit){dx=speed;red.fill='blue';}
-        else{dx = vec_x/limit}
-      }
-      if(vec_x<0){
-        if(vec_x<-limit){dx=-speed;red.fill='blue';}
-        else{dx = -(-vec_x/limit)}
-      }
+    if(vec_x>0){
+    if(vec_x>limit_x-white.x){dx=speed;fill='blue';}
+    else{dx = vec_x/(limit_x - white.x)*speed}
+    //console.log("right")
+  }
+  if(vec_x<0){
+  if(vec_x<limit_x-white.x){dx=-speed;fill='blue';}
+  else{dx = -vec_x/(limit_x - white.x)*speed}
+  //  console.log("left")
+}
+}
+else{dx=0}
+
+//y入力
+if(vec_y!=0){
+if(vec_y>0){
+aniname='down';
+if(vec_y>limit_y-white.y){dy=speed;fill='blue';}
+else{dy = vec_y/(limit_y-white.y)*speed}
+//console.log("down")
+}
+if(vec_y<0){
+aniname='up';
+if(vec_y<limit_y-white.y){dy=-speed;fill='blue';}
+else{dy = -vec_y/(limit_y-white.y)*speed}
+//console.log("up")
+}
+}
+else{dy=0}
+*/
+
+red.fill=fill;
+
+//横移動アニメーション
+if(Math.abs(vec_x)>Math.abs(vec_y)){
+  if(vec_x>0){aniname='right';}
+  else{aniname='left';}
+}
+},
+
+onpointend:function(e){
+  dy=0;
+  dx=0;
+  red.remove();
+  white.remove();
+},
+
+update:function(){
+  score++;
+  //interval=Math.max(20,start-Math.floor(score/200));
+  now++;
+  label.text=score;
+  player.x += dx ;
+  player.y += dy ;
+
+  if(player.y<32){player.y=32}
+  if(player.y>SCREEN_HEIGHT-32){player.y=SCREEN_HEIGHT-32}
+  if(player.x<32){player.x=32}
+  if(player.x>SCREEN_WIDTH-32){player.x=SCREEN_WIDTH-32}
+
+  if(score%time==0){
+    level++;
+
+    interval=Math.max(10,interval-1);
+    //if(interval==breaktime){
+    //  interval=breaktime+3;
+    //  breaktime=Math.max(10,interval-6);
+    //}
+    var t='';
+    if(interval==10){t='MAX'}else{t=level;}
+    label2.text= 'レベル : '+t;
+  }
+
+
+  //console.log(interval);
+  if(now>interval){
+
+    now=0;
+    //count++;
+
+    // スプライト画像作成
+
+    var enemy = Sprite('nasu', 96, 96).addChildTo(enemygroup).setSize(96,96);
+    enemy.collider.setSize(32, 48).offset(0,8);
+    SoundManager.play('alert');
+    // スプライトにフレームアニメーションをアタッチ
+    var anim2 = FrameAnimation('nasu_sprite').attachTo(enemy);
+    anim2.fit = false;
+
+    var rand = Math.floor(Math.random()*(4));
+    anim2.gotoAndPlay(animation[rand]);
+
+    var pos={x:0,y:0,r:0};
+    switch(rand){
+      case 0://up
+      enemy.x = 48+Math.floor(Math.random()*(SCREEN_WIDTH-96));
+      pos.x=enemy.x;
+      pos.y=SCREEN_HEIGHT-50;
+      pos.r=0;
+      enemy.top = SCREEN_HEIGHT+32;
+      enemy.vx=0;
+      enemy.vy=-speed;
+      break;
+
+      case 1://down
+      enemy.x = 48+Math.floor(Math.random()*(SCREEN_WIDTH-96));
+      pos.x=enemy.x;
+      pos.y=50;
+      pos.r=180;
+      enemy.bottom = 0-32;
+      enemy.vx=0;
+      enemy.vy=speed;
+      break;
+
+      case 2://left
+      enemy.y = 48+Math.floor(Math.random()*(SCREEN_HEIGHT-96));
+      pos.x=50;
+      pos.y=enemy.y;
+      pos.r=-270;
+      enemy.right = 0-32;
+      enemy.vx=speed;
+      enemy.vy=0;
+      break;
+
+      case 3://right
+      enemy.y = 48+Math.floor(Math.random()*(SCREEN_HEIGHT-96));
+      pos.x=SCREEN_WIDTH-50;
+      pos.y=enemy.y;
+      pos.r=-90;
+      enemy.left = SCREEN_WIDTH+32;
+      enemy.vx=-speed;
+      enemy.vy=0;
+      break;
+
     }
-        else{dx=0}
 
-    if(vec_y!=0){
-      if(vec_y>0){
-        aniname='down';
-        if(vec_y>limit){dy=speed;red.fill='blue';}
-        else{dy = vec_y/limit}
-      }
-      if(vec_y<0){
-        aniname='up';
-        if(vec_y<-limit){dy=-speed;red.fill='blue';}
-        else{dy = -(-vec_y/limit)}
-      }
-    }
-        else{dy=0}
-
-    if(vec_x<limit && vec_x>-limit && vec_y<limit && vec_y>-limit){
-      red.fill='red';
-    }
-
-    if(Math.abs(vec_x)>Math.abs(vec_y)){
-      if(vec_x>0){aniname='right';}
-      else{aniname='left';}
-    }
-
-    if(anim.currentAnimation.next!= aniname){
-      console.log(aniname);
-      anim.gotoAndPlay(aniname);
-    }
-
-
-
-
-
-    //this.exit();
-  },
-
-  onpointend:function(e){
-    dy=0;
-    dx=0;
-    red.remove();
-    white.remove();
-  },
-
-  update:function(){
-    score++;
-    //interval=Math.max(20,start-Math.floor(score/200));
-    now++;
-    label.text=score;
-    player.x += dx ;
-    player.y += dy ;
-    //console.log(dx+" : "+dy);
-
-    if(score%600==0){
-      level++;
-
-      interval=Math.max(10,interval-1);
-      //if(interval==breaktime){
-      //  interval=breaktime+3;
-      //  breaktime=Math.max(10,interval-6);
-      //}
-      var t='';
-      if(interval==10){t='MAX'}else{t=level;}
-      label2.text= 'レベル : '+t;
-    }
-
-
-    //console.log(interval);
-    if(now>interval){
-
-      now=0;
-      count++;
-
-      // スプライト画像作成
-
-      var enemy = Sprite('nasu', 96, 96).addChildTo(enemygroup).setSize(96,96);
-      enemy.collider.setSize(32, 48).offset(0,8);
-      SoundManager.play('alert');
-      // スプライトにフレームアニメーションをアタッチ
-      var anim2 = FrameAnimation('nasu_sprite').attachTo(enemy);
-      anim2.fit = false;
-
-      var rand = Math.floor(Math.random()*(4));
-      anim2.gotoAndPlay(animation[rand]);
-
-      var pos={x:0,y:0,r:0};
-      switch(rand){
-        case 0://up
-        enemy.x = 48+Math.floor(Math.random()*(SCREEN_WIDTH-96));
-        pos.x=enemy.x;
-        pos.y=SCREEN_HEIGHT-50;
-        pos.r=0;
-        enemy.top = SCREEN_HEIGHT+32;
-        enemy.vx=0;
-        enemy.vy=-speed;
-        break;
-
-        case 1://down
-        enemy.x = 48+Math.floor(Math.random()*(SCREEN_WIDTH-96));
-        pos.x=enemy.x;
-        pos.y=50;
-        pos.r=180;
-        enemy.bottom = 0-32;
-        enemy.vx=0;
-        enemy.vy=speed;
-        break;
-
-        case 2://left
-        enemy.y = 48+Math.floor(Math.random()*(SCREEN_HEIGHT-96));
-        pos.x=50;
-        pos.y=enemy.y;
-        pos.r=-270;
-        enemy.right = 0-32;
-        enemy.vx=speed;
-        enemy.vy=0;
-        break;
-
-        case 3://right
-        enemy.y = 48+Math.floor(Math.random()*(SCREEN_HEIGHT-96));
-        pos.x=SCREEN_WIDTH-50;
-        pos.y=enemy.y;
-        pos.r=-90;
-        enemy.left = SCREEN_WIDTH+32;
-        enemy.vx=-speed;
-        enemy.vy=0;
-        break;
-
-      }
-
-      var alert=Sprite('icon', 96, 96).setPosition(pos.x,pos.y).setRotation(pos.r).setScale(0.5).addChildTo(this)
-      alert.time=20;
-      //    SoundManager.play('alert');
-      alert.update=function(){
-        alert.time--;
-        alert.alpha=(alert.time/20);
-        if (alert.time==0) {
-          alert.remove();
-        }
-      }
-
-      enemy.update= function(){
-        this.x += this.vx;
-        this.y += this.vy;
-
-
-        if (enemy.collider.hitTest(player.collider)) {
-          //console.log("hit");
-          anim.gotoAndPlay('hit');
-          anim2.gotoAndPlay('hit');
-          label.remove();
-          SoundManager.stopMusic('bgm');
-          SoundManager.play('hit');
-          self.app.pushScene(GameOver(score));
-        }
-
-        if (this.top > SCREEN_HEIGHT+64 || this.bottom < 0-64) {
-          this.remove();
-        }
-
-        if (this.left > SCREEN_HEIGHT+64 || this.right < 0-64) {
-          this.remove();
-        }
+    var alert=Sprite('icon', 96, 96).setPosition(pos.x,pos.y).setRotation(pos.r).setScale(0.5).addChildTo(this)
+    alert.time=20;
+    //    SoundManager.play('alert');
+    alert.update=function(){
+      alert.time--;
+      alert.alpha=(alert.time/20);
+      if (alert.time==0) {
+        alert.remove();
       }
     }
-  },
+
+    enemy.update= function(){
+      this.x += this.vx;
+      this.y += this.vy;
+
+
+      if (enemy.collider.hitTest(player.collider)) {
+        //console.log("hit");
+        anim.gotoAndPlay('hit');
+        anim2.gotoAndPlay('hit');
+        label.remove();
+        SoundManager.stopMusic('bgm');
+        SoundManager.play('hit');
+        self.app.pushScene(GameOver(score));
+      }
+
+      if (this.top > SCREEN_HEIGHT+64 || this.bottom < 0-64) {
+        this.remove();
+      }
+
+      if (this.left > SCREEN_HEIGHT+64 || this.right < 0-64) {
+        this.remove();
+      }
+    }
+  }
+},
 
 
 });
