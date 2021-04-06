@@ -92,49 +92,33 @@ phina.define('Title', {
       strokeWidth:5,
     }).addChildTo(this);
 
-    /*
-    Button({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT-100,width:200,height:50,fill:'yellow',text:'ランキング',fontColor: 'black'})
-    .addChildTo(this)
-    .onpointstart = function(){
-    $.getJSON(dataurl, (getdata) => {
-    // JSONデータを受信した後に実行する処理
-    //data = getdata;
-    var t='ランキング'
-    for(var i=0; i<5; i++){
-    t += '\n' + getdata[i].rank + "位:";
-    t += getdata[i].score + ' ';
-    t += getdata[i].name;
+
+    // スプライト画像作成
+    player = Sprite('toma', 64, 64).addChildTo(this).setSize(96,96);
+    player.x=SCREEN_WIDTH/2;
+    player.y=SCREEN_HEIGHT/2;
+
+    // スプライトにフレームアニメーションをアタッチ
+    anim = FrameAnimation('toma_sprite').attachTo(player);
+    anim.fit = false;
+    // アニメーションを指定
+    anim.gotoAndPlay('down');
+
+
+
+
+
+
+
+  },
+
+  update:function(){
+
+  },
+
+  onpointstart:function(){
+    this.exit();
   }
-  alert(t);
-})
-}
-*/
-// スプライト画像作成
-player = Sprite('toma', 64, 64).addChildTo(this).setSize(96,96);
-player.x=SCREEN_WIDTH/2;
-player.y=SCREEN_HEIGHT/2;
-
-// スプライトにフレームアニメーションをアタッチ
-anim = FrameAnimation('toma_sprite').attachTo(player);
-anim.fit = false;
-// アニメーションを指定
-anim.gotoAndPlay('down');
-
-
-
-
-
-
-
-},
-
-update:function(){
-
-},
-
-onpointstart:function(){
-  this.exit();
-}
 
 
 });
@@ -544,141 +528,96 @@ phina.define("GameOver", {
 
     var group = DisplayElement().addChildTo(this);
     var ranking=[];
-    /*
-    $.getJSON(dataurl, (getdata) => {
-    // JSONデータを受信した後に実行する処理
-    //data = getdata;
-    var t='ランキング'
-    for(var i=0; i<5; i++){
-    var getrank = i+1;
-    var getscore = getdata[i].score;
-    var getname = getdata[i].name;
-
-    var result =  (i+1) + "位 : " + getscore + " " + getname;
-    label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
-
-  }
-
-  //判定
-  var rank=1;
-  for(var i=0; i<getdata.length; i++){
-  if(score < getdata[i].score){
-  rank=i+2;
-}
-}
 
 
-//登録
-if(rank<=5){
-// 登録
-var name = prompt(rank + "位にランクイン！\n名前を入力してください","Nanashi");
-var add ={ rank:rank, score:score, name:name};
-getdata.splice(rank-1,0,add);
-}
-getdata.pop();
+    // クラスのTestClassを作成
+    var TestClass = ncmb.DataStore("HiScore");
+    // データストアへの登録
+    var testClass = new TestClass();
+    // スコアの降順で5件取得
+    TestClass.order("Score", true)
+    .limit(5)
+    .fetchAll()
+    .then(function(objects){
 
-//更新
-for(var i=0; i<5; i++){
-label[i].remove();
-result=i+1 +"位 : "+getdata[i].score+" "+getdata[i].name;
-label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
-}
+      // 取得に成功した場合の処理
 
+      for (var i=0; i<objects.length; i++) {
+        var getscore = objects[i].get("Score");
+        var getname = objects[i].get("name");
+        var getrank = i+1;
+        result =  (i+1) + "位 : " + getscore + " " + getname;
+        label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
+        ranking.push({s:getscore,n:getname});
+      }
 
-$.post(dataurl, getdata, function() {
-// このコールバックはpostが成功した際に実行されます
-alert("送信しました");
-})
-})*/
+      //判定
+      var rank=1;
+      for(var i=0; i<ranking.length; i++){
+        if(score < ranking[i].s){
+          rank=i+2;
+        }
+      }
 
-// クラスのTestClassを作成
-var TestClass = ncmb.DataStore("HiScore");
-// データストアへの登録
-var testClass = new TestClass();
-// スコアの降順で5件取得
-TestClass.order("Score", true)
-.limit(5)
-.fetchAll()
-.then(function(objects){
+      //登録
+      if(rank<=5){
+        // 登録
+        var name = prompt(rank + "位にランクイン！\n名前を入力してください","Nanashi");
+        testClass.set("Score", score);
+        testClass.set("name", name);
+        testClass.save()
+        .then(function(){
+          // 保存に成功した場合の処理
+        })
+        .catch(function(err){
+          // 保存に失敗した場合の処理
+        });
 
-  // 取得に成功した場合の処理
+        // 保存に成功した場合の処理
+        ranking.splice(rank-1,0,{s:score,n:name});
+        //console.log(ranking);
+        for(var i=0; i<ranking.length-1; i++){
+          label[i].remove();
+          result=i+1 +"位 : "+ranking[i].s+" "+ranking[i].n;
+          label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
+        }
+      }
 
-  for (var i=0; i<objects.length; i++) {
-    var getscore = objects[i].get("Score");
-    var getname = objects[i].get("name");
-    var getrank = i+1;
-    result =  (i+1) + "位 : " + getscore + " " + getname;
-    label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
-    ranking.push({s:getscore,n:getname});
-  }
-
-  //判定
-  var rank=1;
-  for(var i=0; i<ranking.length; i++){
-    if(score < ranking[i].s){
-      rank=i+2;
-    }
-  }
-
-  //登録
-  if(rank<=5){
-    // 登録
-    var name = prompt(rank + "位にランクイン！\n名前を入力してください","Nanashi");
-    testClass.set("Score", score);
-    testClass.set("name", name);
-    testClass.save()
-    .then(function(){
-      // 保存に成功した場合の処理
     })
     .catch(function(err){
-      // 保存に失敗した場合の処理
+      // 取得に失敗した場合の処理
     });
 
-    // 保存に成功した場合の処理
-    ranking.splice(rank-1,0,{s:score,n:name});
-    //console.log(ranking);
-    for(var i=0; i<ranking.length-1; i++){
-      label[i].remove();
-      result=i+1 +"位 : "+ranking[i].s+" "+ranking[i].n;
-      label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
+
+
+
+
+    //SoundManager.play();
+    //var label4 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+128,fontSize:48,fill:'white',stroke:'black',text:''}).addChildTo(this);
+
+
+    // ポーズ解除ボタン
+    Label({
+      text: 'SPACE,ENTERキー\nor TAP\nTO RETRY',
+      fill: 'white',
+      stroke: 'black',
+      fontSize:48,
+    }).addChildTo(this)
+    .setPosition(this.gridX.center(), SCREEN_HEIGHT*2/3);
+
+  },
+
+  update:function(app){
+
+    var k = app.keyboard;
+
+    if(k.getKey('space') || k.getKey('enter')){
+      location.reload();
     }
-  }
-
-})
-.catch(function(err){
-  // 取得に失敗した場合の処理
-});
-
-
-
-
-
-//SoundManager.play();
-//var label4 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+128,fontSize:48,fill:'white',stroke:'black',text:''}).addChildTo(this);
-
-
-// ポーズ解除ボタン
-Label({
-  text: 'SPACE,ENTERキー\nor TAP\nTO RETRY',
-  fill: 'white',
-  stroke: 'black',
-  fontSize:48,
-}).addChildTo(this)
-.setPosition(this.gridX.center(), SCREEN_HEIGHT*2/3);
-
-},
-
-update:function(app){
-
-  var k = app.keyboard;
-
-  if(k.getKey('space') || k.getKey('enter')){
+  },
+  onpointstart: function() {
     location.reload();
-  }
-},
-onpointstart: function() {
-  location.reload();
-},
+  },
 
 
 });
