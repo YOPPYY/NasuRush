@@ -647,7 +647,7 @@ phina.main(function() {
   });
 
 
-  app.enableStats();  // コレだけ!!!
+  //app.enableStats();  // コレだけ!!!
   // 実行
   app.run();
 });
