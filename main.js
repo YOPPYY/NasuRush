@@ -76,7 +76,7 @@ phina.define('Title', {
       y:SCREEN_HEIGHT/4,
       fill:'white',
       stroke:'purple',
-      strokeWidth:5,
+      strokeWidth:10,
     }).addChildTo(this);
 
     label = Label({
@@ -587,7 +587,7 @@ phina.define("GameOver", {
         db.collection("Score")
         .orderBy('score','desc')
         .orderBy('date', 'desc')
-        .limit(10)//念のため
+        .limit(10)
         .get()
         .then((snapShot) => {
 
