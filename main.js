@@ -533,7 +533,7 @@ phina.define("GameOver", {
         db.collection("Score")
         .orderBy('score','desc')
         .orderBy('date', 'desc')
-        .limit(100)//念のため
+        .limit(1000)//念のため
         .get()
         .then((snapShot) => {
 
@@ -554,7 +554,7 @@ phina.define("GameOver", {
 
     const Alert=function(){
       return new Promise(function(resolve, reject) {
-        if(rank<=100){var b=rank + "位にランクイン！\n";}
+        if(rank<=1000){var b=rank + "位にランクイン！\n";}
         else{var b="";}
         var name = prompt(b+"名前を入力してください","Nanashi");
         if(!name){name="Nanashi"}
