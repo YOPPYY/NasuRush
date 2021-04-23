@@ -101,12 +101,6 @@ phina.define('Title', {
     // アニメーションを指定
     anim.gotoAndPlay('down');
 
-
-
-
-
-
-
   },
 
   update:function(){
