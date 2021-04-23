@@ -525,7 +525,6 @@ phina.define("GameOver", {
 
 
     var group = DisplayElement().addChildTo(this);
-    var ranking=[];
     var result;
     var rank=1;
     const Ranking=function(){
