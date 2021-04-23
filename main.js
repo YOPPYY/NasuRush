@@ -1,6 +1,5 @@
 // phina.js をグローバル領域に展開
 phina.globalize();
-
 var SCREEN_WIDTH = 640;
 var SCREEN_HEIGHT = 960;
 var start=30;
@@ -34,7 +33,7 @@ var ASSETS = {
   image: {
     'toma': 'tomapiyo.png',
     'nasu': 'nasupiyo.png',
-    'icon':'icon.png',
+    'icon':'https://raw.githubusercontent.com/YOPPYY/NasuRush/master/icon.png',
   },
   // スプライトシート
   spritesheet: {
@@ -454,7 +453,7 @@ update:function(){
 
     }
 
-    var alert=Sprite('icon', 96, 96).setPosition(pos.x,pos.y).setRotation(pos.r).setScale(0.5).addChildTo(this)
+    var alert=Sprite('icon').setSize(48, 48).setPosition(pos.x,pos.y).setRotation(pos.r).addChildTo(this)
     alert.time=20;
     //    SoundManager.play('alert');
     alert.update=function(){
@@ -527,35 +526,22 @@ phina.define("GameOver", {
     var group = DisplayElement().addChildTo(this);
     var result;
     var rank=1;
+
     const Ranking=function(){
       return new Promise(function(resolve, reject) {
-
 
         db.collection("Score")
         .orderBy('score','desc')
         .orderBy('date', 'desc')
-        .limit(100000)//念のため
+        .limit(100)//念のため
         .get()
         .then((snapShot) => {
 
           var i=0;
           snapShot.forEach((doc) => {
 
-            if(score<doc.get("score")){console.log("rank++");rank++}
+            if(score<doc.get("score")){rank++}
             i++;
-
-            console.log("rank:"+rank);
-            //表示
-            var getscore = doc.get("score");
-            var getname = doc.get("name");
-            var getrank = i;
-            var t =  getrank + "位 : " + getscore + " " + getname;
-            //TOP10のみ表示
-            if(i<=10){
-              Label({x:SCREEN_WIDTH/4,y:100+50*i,fontSize:32,fill:'white',stroke:'black',text:t,align:"left"}).addChildTo(group);
-            }
-            //
-
 
           })
           resolve();
@@ -568,7 +554,8 @@ phina.define("GameOver", {
 
     const Alert=function(){
       return new Promise(function(resolve, reject) {
-        var b=rank + "位にランクイン！\n";
+        if(rank<=100){var b=rank + "位にランクイン！\n";}
+        else{var b="";}
         var name = prompt(b+"名前を入力してください","Nanashi");
         if(!name){name="Nanashi"}
 
@@ -594,8 +581,48 @@ phina.define("GameOver", {
       });
     }
 
+    //再取得
+    const Disp=function(){
+      return new Promise(function(resolve, reject) {
+        db.collection("Score")
+        .orderBy('score','desc')
+        .orderBy('date', 'desc')
+        .limit(10)//念のため
+        .get()
+        .then((snapShot) => {
+
+          var i=0;
+          snapShot.forEach((doc) => {
+
+            i++;
+
+            //console.log("rank:"+rank);
+            //表示
+            var getscore = doc.get("score");
+            var getname = doc.get("name");
+            var getrank = i;
+            var t =  getrank + " : " + getscore + " " + getname;
+            Label({x:SCREEN_WIDTH/4,y:100+50*i,fontSize:32,fill:'white',stroke:'black',text:t,align:"left"}).addChildTo(group);
+
+
+
+          })
+          resolve();
+        })
+        .catch(function (error) {
+          Label({x:320,y:150,fontSize:48,fill:'white',stroke:'black',text:"取得失敗"}).addChildTo(group);
+        });
+
+
+        //ここまで
+        resolve();
+
+      });
+    }
+
     Ranking()
     .then(Alert)
+    .then(Disp)
 
 
 
