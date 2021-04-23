@@ -28,9 +28,7 @@ var group;
 var playergroup = null;
 var enemyrgroup = null;
 
-// mobile backendアプリとの連携
-var ncmb = new NCMB("5e30184db77257aa7a8d40dcff29327e40b2f51e02c9114340b17471b1d693aa","cd55c73b9c3e6094a3ccd11a29d7817fc80d338cdb38afa801c9c93bd2ff3af4");
-var dataurl ='https://raw.githubusercontent.com/YOPPYY/NasuRush/master/data.js';
+
 var ASSETS = {
   // 画像
   image: {
@@ -521,15 +519,89 @@ phina.define("GameOver", {
       color='yellow';
     }
 
-    var label1 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2-32,fontSize:48,fill:color,stroke:'black',text:'スコア : '+score}).addChildTo(this);
-    var label2 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+32,fontSize:48,fill:'white',stroke:'black',text:'ハイスコア : '+hi}).addChildTo(this);
+    var label1 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT*3/4-32,fontSize:48,fill:color,stroke:'black',text:'スコア : '+score}).addChildTo(this);
+    var label2 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT*3/4+32,fontSize:48,fill:'white',stroke:'black',text:'ハイスコア : '+hi}).addChildTo(this);
     var label4 = Label({x:SCREEN_WIDTH/2,y:75,fontSize:48,fill:'yellow',stroke:'black',text:'ランキング'}).addChildTo(this);
 
 
     var group = DisplayElement().addChildTo(this);
     var ranking=[];
+    var result;
+    var rank=1;
+    const Ranking=function(){
+      return new Promise(function(resolve, reject) {
 
 
+        db.collection("Score")
+        .orderBy('score','desc')
+        .orderBy('date', 'desc')
+        //.limit(10)
+        .get()
+        .then((snapShot) => {
+
+          var i=0;
+          snapShot.forEach((doc) => {
+
+            if(score<doc.get("score")){console.log("rank++");rank++}
+            i++;
+
+            console.log("rank:"+rank);
+            //表示
+            var getscore = doc.get("score");
+            var getname = doc.get("name");
+            var getrank = i;
+            var t =  getrank + "位 : " + getscore + " " + getname;
+            //TOP10のみ表示
+            if(i<=10){
+              Label({x:SCREEN_WIDTH/4,y:100+50*i,fontSize:32,fill:'white',stroke:'black',text:t,align:"left"}).addChildTo(group);
+            }
+            //
+
+
+          })
+          resolve();
+        })
+        .catch(function (error) {
+          Label({x:320,y:150,fontSize:48,fill:'white',stroke:'black',text:"取得失敗"}).addChildTo(group);
+        });
+      });
+    }
+
+    const Alert=function(){
+      return new Promise(function(resolve, reject) {
+        var b=rank + "位にランクイン！\n";
+        var name = prompt(b+"名前を入力してください","Nanashi");
+        if(!name){name="Nanashi"}
+
+        //送信
+        //ここから
+        var date = new Date();
+
+        db.collection("Score").add({
+          score:score,
+          date:date,
+          name:name,
+        })
+        .then(function (doc) {
+          console.log("送信成功")
+        })
+        .catch(function (error) {
+          console.log("送信失敗")
+        });
+
+        //ここまで
+        resolve();
+
+      });
+    }
+
+    Ranking()
+    .then(Alert)
+
+
+
+
+    /*
     // クラスのTestClassを作成
     var TestClass = ncmb.DataStore("HiScore");
     // データストアへの登録
@@ -540,84 +612,84 @@ phina.define("GameOver", {
     .fetchAll()
     .then(function(objects){
 
-      // 取得に成功した場合の処理
+    // 取得に成功した場合の処理
 
-      for (var i=0; i<objects.length; i++) {
-        var getscore = objects[i].get("Score");
-        var getname = objects[i].get("name");
-        var getrank = i+1;
-        result =  (i+1) + "位 : " + getscore + " " + getname;
-        label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
-        ranking.push({s:getscore,n:getname});
-      }
+    for (var i=0; i<objects.length; i++) {
+    var getscore = objects[i].get("Score");
+    var getname = objects[i].get("name");
+    var getrank = i+1;
+    result =  (i+1) + "位 : " + getscore + " " + getname;
+    label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
+    ranking.push({s:getscore,n:getname});
+  }
 
-      //判定
-      var rank=1;
-      for(var i=0; i<ranking.length; i++){
-        if(score < ranking[i].s){
-          rank=i+2;
-        }
-      }
+  //判定
+  var rank=1;
+  for(var i=0; i<ranking.length; i++){
+  if(score < ranking[i].s){
+  rank=i+2;
+}
+}
 
-      //登録
-      if(rank<=5){
-        // 登録
-        var name = prompt(rank + "位にランクイン！\n名前を入力してください","Nanashi");
-        testClass.set("Score", score);
-        testClass.set("name", name);
-        testClass.save()
-        .then(function(){
-          // 保存に成功した場合の処理
-        })
-        .catch(function(err){
-          // 保存に失敗した場合の処理
-        });
+//登録
+if(rank<=5){
+// 登録
+var name = prompt(rank + "位にランクイン！\n名前を入力してください","Nanashi");
+testClass.set("Score", score);
+testClass.set("name", name);
+testClass.save()
+.then(function(){
+// 保存に成功した場合の処理
+})
+.catch(function(err){
+// 保存に失敗した場合の処理
+});
 
-        // 保存に成功した場合の処理
-        ranking.splice(rank-1,0,{s:score,n:name});
-        //console.log(ranking);
-        for(var i=0; i<ranking.length-1; i++){
-          label[i].remove();
-          result=i+1 +"位 : "+ranking[i].s+" "+ranking[i].n;
-          label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
-        }
-      }
+// 保存に成功した場合の処理
+ranking.splice(rank-1,0,{s:score,n:name});
+//console.log(ranking);
+for(var i=0; i<ranking.length-1; i++){
+label[i].remove();
+result=i+1 +"位 : "+ranking[i].s+" "+ranking[i].n;
+label[i]=Label({x:SCREEN_WIDTH/4,y:150+50*i,fontSize:32,fill:'white',stroke:'black',text:result,align:"left"}).addChildTo(group);
+}
+}
 
-    })
-    .catch(function(err){
-      // 取得に失敗した場合の処理
-    });
-
-
-
+})
+.catch(function(err){
+// 取得に失敗した場合の処理
+});
+*/
 
 
-    //SoundManager.play();
-    //var label4 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+128,fontSize:48,fill:'white',stroke:'black',text:''}).addChildTo(this);
 
 
-    // ポーズ解除ボタン
-    Label({
-      text: 'SPACE,ENTERキー\nor TAP\nTO RETRY',
-      fill: 'white',
-      stroke: 'black',
-      fontSize:48,
-    }).addChildTo(this)
-    .setPosition(this.gridX.center(), SCREEN_HEIGHT*2/3);
+//SoundManager.play();
+//var label4 = Label({x:SCREEN_WIDTH/2,y:SCREEN_HEIGHT/2+128,fontSize:48,fill:'white',stroke:'black',text:''}).addChildTo(this);
 
-  },
+/*
+// ポーズ解除ボタン
+Label({
+text: 'ENTERキー または\n 画面タップでリトライ',
+fill: 'white',
+stroke: 'black',
+fontSize:48,
+}).addChildTo(this)
+.setPosition(this.gridX.center(), SCREEN_HEIGHT*2/3);
+*/
+},
 
-  update:function(app){
+update:function(app){
 
-    var k = app.keyboard;
+  var k = app.keyboard;
 
-    if(k.getKey('space') || k.getKey('enter')){
-      location.reload();
-    }
-  },
-  onpointstart: function() {
+  if(/*k.getKey('space') ||*/ k.getKey('enter')){
     location.reload();
-  },
+  }
+},
+onpointstart: function() {
+  location.reload();
+},
 
 
 });
