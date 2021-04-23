@@ -534,7 +534,7 @@ phina.define("GameOver", {
         db.collection("Score")
         .orderBy('score','desc')
         .orderBy('date', 'desc')
-        //.limit(10)
+        .limit(100000)//念のため
         .get()
         .then((snapShot) => {
 
